@@ -2,17 +2,11 @@
 #include "flash.h"  // 需要访问Flash函数
 #include "rfid.h"   // 需要访问RFID函数
 
-BluetoothSerial SerialBT;
 extern SPIFlash flash;
 extern MFRC522 mfrc522;
 // 定义快速录取的最大等待时间（1分钟 = 60秒）
 #define RECORD_TIMEOUT 60000  // 60000 毫秒 = 1分钟
 
-// 初始化蓝牙
-void initBluetooth() {
-    SerialBT.begin("ESP32-RFID-Manager");  // 设置蓝牙设备名称
-    Serial.println("蓝牙已初始化，设备名称为：ESP32-RFID-Manager");
-}
 // 检查用户名是否已经存在
 bool isUsernameExists(const char* username) {
     for (int i = 0; i < MAX_USERS; i++) {
@@ -42,6 +36,7 @@ bool isUIDExists(const byte* uid) {
     }
     return false;
 }
+
 // 快速录取模式
 void quickRecord() {
     sendFeedback("进入快速录取模式，请在1分钟内将IC卡放置在读卡器上...");
@@ -76,9 +71,6 @@ void quickRecord() {
             if (Serial.available()) {
                 username = Serial.readStringUntil('\n');  // 从串口读取
                 waitingForUserInput = false;  // 读取后退出输入等待模式
-            } else if (SerialBT.available()) {
-                username = SerialBT.readStringUntil('\n');  // 从蓝牙读取
-                waitingForUserInput = false;  // 读取后退出输入等待模式
             }
 
             if (!waitingForUserInput) {
@@ -105,10 +97,6 @@ void quickRecord() {
     }
 }
 
-
-
-
-// 处理串口命令
 // 处理串口命令
 void handleCommand(String input) {
     if (input.startsWith("ADDUSER ")) {
@@ -169,14 +157,8 @@ void handleCommand(String input) {
     }
 }
 
-
 // 通用反馈函数
 void sendFeedback(String message) {
     // 发送到有线串口
     Serial.println(message);
-
-    // 如果蓝牙已连接，则发送到蓝牙串口
-    if (SerialBT.hasClient()) {
-        SerialBT.println(message);
-    }
 }

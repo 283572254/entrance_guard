@@ -1,7 +1,7 @@
 #include "rfid.h"
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);
 
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 // ³õÊ¼»¯RFIDÄ£¿é
 void initRFID() {
     mfrc522.PCD_Init();
