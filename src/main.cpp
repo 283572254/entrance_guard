@@ -54,7 +54,7 @@ char pswd[] = "507507507507";
 #define BLINKER_WIFI
 
 #include <Blinker.h>
-
+#include <Servo.h>
 
 
 // 新建组件对象
@@ -66,11 +66,19 @@ BlinkerButton btnQuickRecord("btn-record");    // 快速录入按钮
 BlinkerText txtFeedback("txt-feedback");       // 反馈文本
 
 int counter = 0;
-
+bool door_flag = 0;
 // 按下按键即会执行该函数
 void button1_callback(const String & state) {
+    door_flag = 1;
+    if(door_flag==1)
+    {
+        Servo_control(PWM_CHANNEL,90);
+    }
+
     BLINKER_LOG("get button state: ", state);
+    BLINKER_LOG("get door_flag state: ", door_flag);
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+
 }
 
 // 如果未绑定的组件被触发，则会执行其中内容
@@ -96,9 +104,16 @@ void setup() {
     Blinker.begin(auth, ssid, pswd);
     Blinker.attachData(dataRead);
     Button1.attach(button1_callback);
+    Servo_Init(PWM_CHANNEL,PWM_FREQUENCY,PWM_RESOLUTION,SERVO_PIN);
 }
 
 void loop() {
     Blinker.run();
     delay(100);
+    if(door_flag==1)
+    {
+        delay(5000);
+        Servo_control(PWM_CHANNEL,0);
+        door_flag = 0;
+    }
 }
