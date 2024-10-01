@@ -75,14 +75,11 @@ void button1_callback(const String & state) {
 
 // 如果未绑定的组件被触发，则会执行其中内容
 void dataRead(const String & data) {
-    String command = data;  // 处理来自 Blinker 的输入数据
-    handleCommand(command);  // 将 Blinker 的数据传递给命令处理函数
-    
-    // 清空 command 和 data
-    command = "";  // 重置命令字符串
-    // 注意：data 是传入的常量引用，因此不能直接修改。
+    // 打印接收到的数据，用于调试
+    Serial.println("Received data: " + data);
+    String blinkr_command = data;
+    handleCommand(blinkr_command);  // 处理命令
 }
-
 
 void setup() {
     // 初始化串口
@@ -103,4 +100,5 @@ void setup() {
 
 void loop() {
     Blinker.run();
+    delay(100);
 }
