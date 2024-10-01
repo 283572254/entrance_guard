@@ -2,6 +2,7 @@
 #include "flash.h"
 #include "rfid.h"
 #include "serial_bluetooth.h"
+#include <Servo.h>
 #define RELAY_CON 5        // 继电器控制引脚
 bool isAdminMode = false;  // 是否处于管理者模式
 
@@ -16,6 +17,7 @@ void setup() {
     initRFID();               // 初始化RFID模块
     initFlash();              // 初始化Flash模块
     initBluetooth();          // 初始化蓝牙模块
+    Servo_Init(PWM_CHANNEL,PWM_FREQUENCY,PWM_RESOLUTION,SERVO_PIN);              // 初始化舵机
 }
 
 // 主循环：处理串口命令和门禁逻辑
@@ -38,13 +40,15 @@ void loop() {
     if (readCardUID(currentUID)) {
         if (verifyUserFromFlash(currentUID)) {
             sendFeedback("用户验证成功，打开继电器");
+            Servo_control(PWM_CHANNEL,90);  // 控制舵机(PWM_CHANNEL为通道号
             digitalWrite(RELAY_CON, HIGH);  // 打开继电器
             delay(5000);                    // 延迟5秒后关闭继电器
             digitalWrite(RELAY_CON, LOW);   // 关闭继电器
+            Servo_control(PWM_CHANNEL,0);  // 控制舵机(PWM_CHANNEL为通道号
         } else {
             sendFeedback("用户验证失败");
         }
     }
-
+    
     delay(100);  // 延迟1秒
 }
