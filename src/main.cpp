@@ -92,7 +92,9 @@ void dataRead(const String & data) {
 void setup() {
     // 初始化串口
     Serial.begin(115200);
-
+    SPI.begin();              // 初始化SPI总线
+    initRFID();               // 初始化RFID模块
+    initFlash();              // 初始化Flash模块
     #if defined(BLINKER_PRINT)
         BLINKER_DEBUG.stream(BLINKER_PRINT);
     #endif
@@ -108,6 +110,7 @@ void setup() {
 }
 
 void loop() {
+    byte currentUID[10];  // 当前读取的UID
     Blinker.run();
     delay(100);
     if(door_flag==1)
@@ -115,5 +118,23 @@ void loop() {
         delay(5000);
         Servo_control(PWM_CHANNEL,0);
         door_flag = 0;
+    }
+        // 读取RFID卡片并验证用户
+    if (readCardUID(currentUID)) {
+        if (verifyUserFromFlash(currentUID)) {
+            sendFeedback("用户验证成功，打开继电器");
+            Servo_control(PWM_CHANNEL,90);  // 控制舵机(PWM_CHANNEL为通道号
+            //digitalWrite(RELAY_CON, HIGH);  // 打开继电器
+            delay(5000);                    // 延迟5秒后关闭继电器
+            //digitalWrite(RELAY_CON, LOW);   // 关闭继电器
+            Servo_control(PWM_CHANNEL,0);  // 控制舵机(PWM_CHANNEL为通道号
+        } else {
+            sendFeedback("用户验证失败");
+        }
+    }
+        // 处理有线串口输入
+    if (Serial.available() > 0) {
+        String input = Serial.readStringUntil('\n');
+        handleCommand(input);
     }
 }
